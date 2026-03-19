@@ -1,0 +1,16 @@
+train: D:\FYP\FYP_weapon_detection\train_small\images
+val: D:\FYP\FYP_weapon_detection\valid\images
+test: D:\FYP\FYP_weapon_detection\test\images
+
+# Number of classes
+nc: 2
+
+# We only list the ones we kept
+names: ['gun', 'heavy-weapon']
+
+roboflow:
+  workspace: yolov7test-u13vc
+  project: weapon-detection-m7qso
+  version: 16
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/yolov7test-u13vc/weapon-detection-m7qso/dataset/16

@@ -1,0 +1,21 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# YOLO / Training outputs
+runs/
+*.pt
+labels.cache
+
+# Data folders
+train_small/images/
+train_small/labels/
+train/
+valid/
+export/labels/
+
+# Logs / temp files
+*.log
+.DS_Store
+Thumbs.db
