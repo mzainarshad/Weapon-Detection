@@ -4,72 +4,71 @@
 
 ## Overview
 
-This project is an AI-powered Weapon Detection System designed for real-time monitoring via webcam. It utilizes the YOLO (You Only Look Once) object detection paradigm, specifically YOLOv8 via the `ultralytics` library, to identify weapons (Guns and Heavy Weapons).
+This project is an automated, intelligent Video Surveillance Enhancement system. It transitions traditional CCTV from passive recording to proactive alerting by using deep learning (YOLOv8) to detect behavioral anomalies such as fighting, weapons, and loitering.
 
 ```
 ┌─────────────────────────────────────────┐
-│        Webcam / Video Stream            │
+│        Webcam / IP Camera (RTSP)        │
 ├─────────────────────────────────────────┤
 │            [Input Layer]                │
-│       OpenCV VideoCapture (640x480)     │
+│       OpenCV VideoCapture / Streaming   │
 ├─────────────────────────────────────────┤
 │         [Processing Layer]              │
-│       YOLOv8 Inference (CPU/GPU)        │
+│       YOLOv8 Inference Engine           │
 ├─────────────────────────────────────────┤
-│            [Action Layer]               │
-│    Alert Logic + Image Save + UI Overlay│
+│            [Backend API]                │
+│       Flask Logic + Auth + Logs         │
+├─────────────────────────────────────────┤
+│           [Frontend UI]                 │
+│    React Dashboard + Real-time Alerting │
 └─────────────────────────────────────────┘
 ```
 
-## Components
+## Layers
 
-### Real-time Detector (`detect_realtime.py`)
-- **Purpose:** Captures video stream, performs inference, and manages alerts.
-- **Location:** `detect_realtime.py`
-- **Dependencies:** `cv2`, `ultralytics.YOLO`
-- **Key Features:** FPS calculation, Alert cooldown (5s), Automatic image saving on detection.
+### 1. Frontend (Web UI)
+- **Role:** Visualization and management.
+- **Tech:** React.js / HTML5.
+- **Features:** Live camera grids, real-time alert popups, incident history logs.
 
-### Training Engine (`train.py`)
-- **Purpose:** Configures and initiates model training on local datasets.
-- **Location:** `train.py`
-- **Dependencies:** `ultralytics.YOLO`
-- **Optimization:** Forced CPU training with `workers=0` for Windows stability.
+### 2. Backend (API Layer)
+- **Role:** Coordination and security.
+- **Tech:** Flask (Python).
+- **Features:** JWT authentication, camera management (CRUD), serving processed streams.
 
-### Data Filter (`filter_data.py`)
-- **Purpose:** Preprocesses the dataset by filtering out unwanted classes (e.g., knives) and limiting sample size.
-- **Location:** `filter_data.py`
-- **Dependencies:** `os`, `shutil`
+### 3. AI Engine (The "Brain")
+- **Role:** Deep learning inference.
+- **Tech:** YOLOv8, OpenCV.
+- **Logic:** Frame extraction -> Inference -> Confidence scoring -> Bounding box overlay.
+
+### 4. Database Layer
+- **Role:** Persistence.
+- **Tech:** MySQL or Firebase.
+- **Data:** User accounts, camera metadata, and incident snapshots.
 
 ## Data Flow
 
-1. **Training Phase:**
-   - Raw data sourced from Roboflow.
-   - `filter_data.py` cleans and subsets the data.
-   - `train.py` trains YOLOv8n on the subset.
-   - Output: `best.pt` weights.
-
-2. **Inference Phase:**
-   - `detect_realtime.py` loads `best.pt`.
-   - OpenCV streams webcam frames to the model.
-   - Model outputs bounding boxes and confidence scores.
-   - If confidence > 0.5, an alert is triggered and the frame is saved.
+1. **Ingestion:** Backend captures live frames from RTSP camera feeds.
+2. **Analysis:** AI Engine processes frames, detecting anomalies (Violence, Weapons).
+3. **Persistence:** Detections are logged in the database with timestamps and snapshots.
+4. **Notification:** WebSocket/Socket.io pushes real-time alerts to the React Dashboard.
+5. **Action:** Security personnel respond based on visual cues and alert data.
 
 ## Integration Points
 
 | Service | Type | Purpose |
 |---------|------|---------|
-| Roboflow | API/Web | Sourcing weapon detection datasets |
-| Ultralytics | Library | Model architecture and inference engine |
+| Roboflow | Dataset | Source for training data |
+| AWS/GCP | Cloud | Hosting and GPU processing |
+| Docker | DevOps | Ensuring development environment consistency |
 
 ## Technical Debt
 
-- [ ] **Hardcoded Absolute Paths:** `data.yaml` and `filter_data.py` contain absolute paths (e.g., `D:\FYP\...`) which break portability.
-- [ ] **Missing Environment Spec:** No `requirements.txt` or `environment.yml` provided for environment reproducibility.
-- [ ] **CPU Forced Training:** `train.py` defaults to CPU, which is slow for deep learning.
-- [ ] **Data Locality:** The scripts expect a local dataset structure (`D:\FYP\...`) that is not included in the repository.
+- [ ] **Implementation Gap:** Current repository only contains the AI prototype scripts; Backend and Frontend layers are missing.
+- [ ] **Hardcoded Absolute Paths:** `data.yaml` and `filter_data.py` still reference local machine paths.
+- [ ] **Missing Environment Spec:** Need a multi-container Docker setup for the full stack.
 
 ## Conventions
 
-**Naming:** Script-based organization (`train.py`, `detect_realtime.py`).
-**Structure:** Flat root for scripts, `export/` for data artifacts.
-**Testing:** No automated unit or integration tests present.
+**Naming:** Action-oriented script naming (`detect_realtime.py`, `train.py`).
+**Structure:** Future structure will be modular (e.g., `/backend`, `/frontend`, `/ml_engine`).

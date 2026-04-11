@@ -6,36 +6,45 @@
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| Python | 3.8+ (Inferred) | Core runtime |
+| Python | 3.8+ | Core AI and Backend runtime |
+| Node.js | Latest | Frontend (React.js) runtime |
 
 ## Dependencies
 
-### Production
+### Production (AI Engine)
 | Package | Version | Purpose |
 |---------|---------|---------|
 | ultralytics | Latest | YOLOv8 model and training |
-| opencv-python | Latest | Real-time computer vision and webcam interaction |
+| opencv-python | Latest | Real-time computer vision |
+| TensorFlow/PyTorch | GPU-enabled | Deep learning backend |
 
-### Development
+### Backend & Frontend
 | Package | Version | Purpose |
 |---------|---------|---------|
-| shutil | Built-in | File operations for data filtering |
-| os | Built-in | Path and directory management |
-| time | Built-in | Alert cooldowns and FPS calculation |
+| Flask | Latest | Backend API framework |
+| React.js | Latest | Frontend Dashboard framework |
+| WebSocket | - | Real-time alert pushing |
+
+### Development & DevOps
+| Package | Version | Purpose |
+|---------|---------|---------|
+| Docker | - | Containerization and portability |
+| MySQL / Firebase | - | Data storage for users and logs |
 
 ## Infrastructure
 
 | Service | Provider | Purpose |
 |---------|----------|---------|
-| Roboflow | Roboflow | Dataset sourcing and management |
+| Roboflow | Roboflow | Dataset sourcing |
+| AWS / GCP | Cloud | Scalable hosting and GPU compute |
 
 ## Configuration
 
 | Variable | Purpose | Location |
 |----------|---------|----------|
-| `data` | Dataset configuration for YOLO | `data.yaml` |
-| `BASE_DIR` | Portable base path for scripts | `detect_realtime.py` |
-| `ALERT_COOLDOWN`| Frequency of detection alerts | `detect_realtime.py` |
+| `data` | Dataset configuration | `data.yaml` |
+| `RTSP_URL` | Camera stream address | System Config / DB |
+| `ALERT_COOLDOWN`| Alert frequency | `detect_realtime.py` |
 
 ## Outdated Packages
 
