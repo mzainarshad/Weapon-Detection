@@ -1,45 +1,98 @@
 import cv2
+import os
+import time
 from ultralytics import YOLO
 
-# --- CONFIGURATION ---
-# Load YOUR trained model. 
-# CHECK THE PATH: If yours is in 'train2', change 'train' to 'train2' below.
-model_path = r'runs\detect\train\weights\best.pt' 
+# ---------------- CONFIG ---------------- #
 
-# Load the model
+# Fix model path (portable)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, "runs", "detect", "train", "weights", "best.pt")
+
 print(f"Loading model from: {model_path}...")
 model = YOLO(model_path)
 
-# Initialize Webcam (0 is usually the default laptop camera)
+# Alert settings
+ALERT_COOLDOWN = 5  # seconds
+last_alert_time = 0
+
+# Create folder to save detections
+output_dir = os.path.join(BASE_DIR, "detections")
+os.makedirs(output_dir, exist_ok=True)
+
+# Initialize webcam
 cap = cv2.VideoCapture(0)
 
-# Check if camera opened successfully
 if not cap.isOpened():
     print("Error: Could not open webcam.")
     exit()
 
 print("Starting Camera... Press 'q' to exit.")
 
+# FPS variables
+prev_time = 0
+
+# ---------------- MAIN LOOP ---------------- #
+
 while True:
-    # 1. Read a frame from the camera
     success, frame = cap.read()
     if not success:
         break
 
-    # 2. Run the AI on the frame
-    # conf=0.5 means "Only show me if you are 50% sure it's a gun"
+    # ---- FPS CALCULATION ---- #
+    current_time = time.time()
+    fps = 1 / (current_time - prev_time) if prev_time != 0 else 0
+    prev_time = current_time
+
+    # ---- MODEL INFERENCE ---- #
     results = model(frame, conf=0.5)
 
-    # 3. Draw the detections on the frame
+    detected = False
+
+    for r in results:
+        for box in r.boxes:
+            detected = True
+
+            # Get class + confidence
+            class_id = int(box.cls[0])
+            label = model.names[class_id]
+            confidence = float(box.conf[0])
+
+            # ---- ALERT SYSTEM ---- #
+            current_time = time.time()
+            if current_time - last_alert_time > ALERT_COOLDOWN:
+                last_alert_time = current_time
+
+                print(f"[ALERT] {label} detected ({confidence:.2f})")
+
+                # Save image
+                filename = f"{label}_{int(current_time)}.jpg"
+                filepath = os.path.join(output_dir, filename)
+                cv2.imwrite(filepath, frame)
+
+                print(f"Saved: {filepath}")
+
+    # ---- DRAW DETECTIONS ---- #
     annotated_frame = results[0].plot()
 
-    # 4. Show the result in a window
+    # ---- SHOW FPS ---- #
+    cv2.putText(
+        annotated_frame,
+        f"FPS: {int(fps)}",
+        (20, 40),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1,
+        (0, 255, 0),
+        2
+    )
+
+    # ---- DISPLAY ---- #
     cv2.imshow("FYP Weapon Detection System", annotated_frame)
 
-    # 5. Press 'q' to quit
+    # Exit
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Clean up
+# Cleanup
 cap.release()
 cv2.destroyAllWindows()
