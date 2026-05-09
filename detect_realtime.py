@@ -1,24 +1,37 @@
 import cv2
 import os
 import time
+import pandas as pd
+from datetime import datetime
 from ultralytics import YOLO
 
 # ---------------- CONFIG ---------------- #
 
-# Fix model path (portable)
+# Model setup
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(BASE_DIR, "runs", "detect", "train", "weights", "best.pt")
+model_path = os.path.join(BASE_DIR, "weights", "best.pt")
 
-print(f"Loading model from: {model_path}...")
+if not os.path.exists(model_path):
+    print(f"❌ Error: Model file not found at {model_path}")
+    print("👉 Please ensure 'best.pt' is in the 'weights' folder.")
+    exit()
+
+print(f"✅ Loading model from: {model_path}...")
 model = YOLO(model_path)
 
 # Alert settings
 ALERT_COOLDOWN = 5  # seconds
 last_alert_time = 0
 
-# Create folder to save detections
+# Create folders for detections
 output_dir = os.path.join(BASE_DIR, "detections")
 os.makedirs(output_dir, exist_ok=True)
+
+# CSV Log setup
+log_path = os.path.join(output_dir, "detection_log.csv")
+if not os.path.exists(log_path):
+    df = pd.DataFrame(columns=['timestamp', 'datetime', 'class', 'confidence', 'image_path'])
+    df.to_csv(log_path, index=False)
 
 # Initialize webcam
 cap = cv2.VideoCapture(0)
@@ -45,7 +58,7 @@ while True:
     prev_time = current_time
 
     # ---- MODEL INFERENCE ---- #
-    results = model(frame, conf=0.5)
+    results = model(frame, conf=0.5, verbose=False)
 
     detected = False
 
@@ -58,19 +71,34 @@ while True:
             label = model.names[class_id]
             confidence = float(box.conf[0])
 
-            # ---- ALERT SYSTEM ---- #
-            current_time = time.time()
+            # ---- ALERT & LOGGING SYSTEM ---- #
             if current_time - last_alert_time > ALERT_COOLDOWN:
                 last_alert_time = current_time
+                now = datetime.now()
+                dt_string = now.strftime("%Y-%m-%d %H:%M:%S")
 
-                print(f"[ALERT] {label} detected ({confidence:.2f})")
+                print(f"[ALERT] {label} detected ({confidence:.2f}) at {dt_string}")
 
                 # Save image
-                filename = f"{label}_{int(current_time)}.jpg"
-                filepath = os.path.join(output_dir, filename)
-                cv2.imwrite(filepath, frame)
+                img_name = f"{label}_{int(current_time)}.jpg"
+                img_path = os.path.join(output_dir, img_name)
+                cv2.imwrite(img_path, frame)
 
-                print(f"Saved: {filepath}")
+                # Append to CSV
+                new_entry = {
+                    'timestamp': current_time,
+                    'datetime': dt_string,
+                    'class': label,
+                    'confidence': round(confidence, 4),
+                    'image_path': img_name
+                }
+                
+                # Using pandas to append to CSV
+                log_df = pd.read_csv(log_path)
+                log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
+                log_df.to_csv(log_path, index=False)
+                
+                print(f"Logged to: {log_path}")
 
     # ---- DRAW DETECTIONS ---- #
     annotated_frame = results[0].plot()

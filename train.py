@@ -2,18 +2,17 @@ from ultralytics import YOLO
 
 def main():
     # 1. Load the model. 
-    # We use 'yolov8n.pt' (nano) because it is the fastest to train on laptops.
     model = YOLO('yolov8n.pt')
 
     # 2. Train the model
-    print("Starting CPU training (Optimized for Windows)...")
+    print("🚀 Starting training...")
     
     model.train(
         data='data.yaml', 
-        epochs=10,       # Reduced to 10 for faster testing on CPU
-        imgsz=640,       # Standard image size
-        device='cpu',    # Force CPU usage
-        workers=0        # CRITICAL FIX: Prevents crashing on Windows
+        epochs=10,       
+        imgsz=640,       
+        device='cpu',    # Default to CPU for local laptop tests
+        workers=0        # Windows compatibility fix
     )
 
 if __name__ == '__main__':
