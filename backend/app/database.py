@@ -5,11 +5,17 @@
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 
+
+load_dotenv()
 # ── PostgreSQL connection ────────────────────────────────────────────────────
 # Set this in your .env file:
 #   DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/weapon_detection
-DATABASE_URL = "postgresql://postgres:admin123@localhost:5432/weapon_detection"
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:postgres@localhost:5432/weapon_detection"
+)
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
