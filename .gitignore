@@ -1,21 +1,14 @@
-# Python
-venv/
-__pycache__/
+﻿__pycache__/
 *.pyc
-
-# YOLO / Training outputs
+venv/
+.venv/
+.env
+*.db
+*.sqlite3
+detections/snapshots/
 runs/
-*.pt
-labels.cache
-
-# Data folders
-train_small/images/
-train_small/labels/
-train/
-valid/
-export/labels/
-
-# Logs / temp files
-*.log
+node_modules/
+dist/
+.vite/
 .DS_Store
 Thumbs.db

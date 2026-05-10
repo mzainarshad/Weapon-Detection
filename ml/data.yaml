@@ -1,0 +1,9 @@
+﻿# Update paths to match your Colab dataset location
+path: /content/drive/MyDrive/FYP_dataset
+train: train/images
+val:   valid/images
+
+nc: 2
+names:
+  0: gun
+  1: knife
